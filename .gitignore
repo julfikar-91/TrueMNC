@@ -1,0 +1,47 @@
+# Dart / Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.g.dart
+*.freezed.dart
+
+# Android
+.gradle/
+**/.gradle/
+**/GeneratedPluginRegistrant.java
+android/local.properties
+android/key.properties
+*.jks
+*.keystore
+
+# Firebase — NEVER commit real config
+.firebase/
+google-services.json
+lib/firebase_options.dart
+.firebaserc
+
+# Functions
+functions/node_modules/
+functions/lib/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.*
+*.secret
+
+# Logs, coverage & locks
+coverage/
+*.log
+package-lock.json
+node_modules/
