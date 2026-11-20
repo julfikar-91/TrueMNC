@@ -21,7 +21,9 @@
     "seed:config": "ts-node scripts/seedConfig.ts",
     "seed:stats": "ts-node scripts/seedStats.ts",
     "test:skills": "npm run build && node --test lib/__tests__/skills.test.js",
-    "test:resume": "ts-node src/__tests__/resumePipeline.test.ts"
+    "test:resume": "ts-node src/__tests__/resumePipeline.test.ts",
+    "test:matching": "ts-node src/__tests__/matchingEngine.test.ts",
+    "test:ai": "ts-node src/__tests__/aiSearchAndReports.test.ts"
   },
   "dependencies": {
     "firebase-admin": "^12.1.0",

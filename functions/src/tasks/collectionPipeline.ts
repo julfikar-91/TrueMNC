@@ -15,6 +15,7 @@ import {
 } from "../rules/verificationRules";
 import { extractJobWithGemini } from "../ai/extractJob";
 import { logInfo, logWarn, logError } from "../utils/logger";
+import { onJobActivated } from "../matching/fanout";
 
 const FN = "collectionPipeline";
 
@@ -634,9 +635,10 @@ export const onJobStatusChange = onDocumentWritten(
       }
     });
 
-    // 3. Match Fanout Stub (when becoming ACTIVE)
-    if (newStatus === "ACTIVE") {
-      logInfo(FN, `[MATCH-FANOUT-STUB] Job ${event.params.jobId} became ACTIVE. Match fanout dispatched (no-op stub).`);
+    // 3. Match Fanout (when becoming ACTIVE)
+    if (newStatus === "ACTIVE" && afterData) {
+      logInfo(FN, `Job ${event.params.jobId} became ACTIVE. Dispatching match fanout.`);
+      await onJobActivated({ id: event.params.jobId, ...afterData });
     }
   },
 );

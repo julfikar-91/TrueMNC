@@ -2,8 +2,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/demo/demo_provider.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_logo.dart';
 import '../../../core/widgets/error_state_widget.dart';
 import '../../../data/repositories/auth_repository.dart';
 
@@ -70,12 +74,25 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             ? Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                  child: ErrorStateWidget(
-                    title: 'Offline / Connection Issue',
-                    message:
-                        'Unable to connect to TrueMNC servers. Please verify your internet connection and try again.',
-                    retryLabel: 'Retry Connection',
-                    onRetry: _handleRetry,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ErrorStateWidget(
+                        title: 'Offline / Connection Issue',
+                        message:
+                            'Unable to connect to TrueMNC servers. Please verify your internet connection and try again.',
+                        retryLabel: 'Retry Connection',
+                        onRetry: _handleRetry,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      AppButton(
+                        label: '⚡ Open Offline Demo Mode',
+                        onPressed: () {
+                          ref.read(isDemoModeProvider.notifier).state = true;
+                          context.go(AppRoutes.home);
+                        },
+                      ),
+                    ],
                   ),
                 ),
               )
@@ -85,19 +102,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 88,
-                          height: 88,
-                          decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.business_center_rounded,
-                            size: 48,
-                            color: colorScheme.primary,
-                            semanticLabel: 'TrueMNC logo',
-                          ),
+                        const AppLogo(
+                          size: 96,
+                          borderRadius: 24,
+                          elevation: 3,
+                          semanticLabel: 'TrueMNC logo',
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         Text(
@@ -125,15 +134,29 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                     ),
                   ),
                   Positioned(
-                    bottom: AppSpacing.lg,
+                    bottom: AppSpacing.xl,
                     left: 0,
                     right: 0,
-                    child: Text(
-                      'v1.0.0 (Build 1)',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.outline,
-                      ),
-                      textAlign: TextAlign.center,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () {
+                            ref.read(isDemoModeProvider.notifier).state = true;
+                            context.go(AppRoutes.home);
+                          },
+                          icon: const Icon(Icons.bolt, size: 16, color: Colors.amber),
+                          label: const Text('⚡ Explore Demo Mode'),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'v1.0.0 (Build 1)',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.outline,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
                   ),
                 ],

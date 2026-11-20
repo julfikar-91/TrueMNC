@@ -5,12 +5,18 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/demo/demo_provider.dart';
+import '../../core/demo/mock_repositories.dart';
 import '../../core/errors/error_handler.dart';
 import '../../core/utils/constants.dart';
 import '../models/resume_model.dart';
 import '../services/firebase_service.dart';
 
 final resumeRepositoryProvider = Provider<ResumeRepository>((ref) {
+  final isDemo = ref.watch(isDemoModeProvider);
+  if (isDemo) {
+    return MockResumeRepository();
+  }
   return ResumeRepository(
     ref.watch(firebaseStorageProvider),
     ref.watch(firestoreProvider),

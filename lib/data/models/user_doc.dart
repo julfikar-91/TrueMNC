@@ -17,6 +17,9 @@ class UserDoc extends Equatable {
     this.profileConfirmed = false,
     this.preferencesMissing = true,
     this.adminStartPreferred = false,
+    this.location,
+    this.preferences,
+    this.isFresher = false,
     this.createdAt,
     this.updatedAt,
   });
@@ -31,6 +34,9 @@ class UserDoc extends Equatable {
   final bool profileConfirmed;
   final bool preferencesMissing;
   final bool adminStartPreferred;
+  final String? location;
+  final Map<String, dynamic>? preferences;
+  final bool isFresher;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -68,6 +74,11 @@ class UserDoc extends Equatable {
       adminStartPreferred: (data['admin_start_preferred'] as bool?) ??
           (data['adminStartPreferred'] as bool?) ??
           false,
+      location: (data['location'] as String?),
+      preferences: (data['preferences'] as Map<String, dynamic>?),
+      isFresher: (data['isFresher'] as bool?) ??
+          (data['is_fresher'] as bool?) ??
+          false,
       createdAt: parseDate(data['createdAt']),
       updatedAt: parseDate(data['updatedAt']),
     );
@@ -84,6 +95,9 @@ class UserDoc extends Equatable {
       'profile_confirmed': profileConfirmed,
       'preferences_missing': preferencesMissing,
       'admin_start_preferred': adminStartPreferred,
+      if (location != null) 'location': location,
+      if (preferences != null) 'preferences': preferences,
+      'isFresher': isFresher,
       if (createdAt != null) 'createdAt': createdAt,
       if (updatedAt != null) 'updatedAt': updatedAt,
     };
@@ -100,6 +114,9 @@ class UserDoc extends Equatable {
     bool? profileConfirmed,
     bool? preferencesMissing,
     bool? adminStartPreferred,
+    String? location,
+    Map<String, dynamic>? preferences,
+    bool? isFresher,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -115,6 +132,9 @@ class UserDoc extends Equatable {
       profileConfirmed: profileConfirmed ?? this.profileConfirmed,
       preferencesMissing: preferencesMissing ?? this.preferencesMissing,
       adminStartPreferred: adminStartPreferred ?? this.adminStartPreferred,
+      location: location ?? this.location,
+      preferences: preferences ?? this.preferences,
+      isFresher: isFresher ?? this.isFresher,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -132,6 +152,9 @@ class UserDoc extends Equatable {
         profileConfirmed,
         preferencesMissing,
         adminStartPreferred,
+        location,
+        preferences,
+        isFresher,
         createdAt,
         updatedAt,
       ];

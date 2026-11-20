@@ -3,12 +3,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/demo/demo_provider.dart';
+import '../../core/demo/mock_repositories.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/error_handler.dart';
 import '../models/admin_job.dart';
 import '../models/app_user.dart';
 import '../models/audit_log.dart';
 import '../models/collection_run_model.dart';
+import '../models/company.dart';
 import '../models/company_source.dart';
 import '../models/job_validation_model.dart';
 import '../services/firebase_service.dart';
@@ -16,6 +19,10 @@ import 'paged_controller.dart';
 
 /// Provider for [AdminRepository].
 final adminRepositoryProvider = Provider<AdminRepository>((ref) {
+  final isDemo = ref.watch(isDemoModeProvider);
+  if (isDemo) {
+    return MockAdminRepository();
+  }
   return AdminRepository(
     ref.watch(cloudFunctionsProvider),
     ref.watch(firestoreProvider),

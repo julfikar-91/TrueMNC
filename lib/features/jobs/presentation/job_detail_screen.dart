@@ -1,11 +1,14 @@
 // lib/features/jobs/presentation/job_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../data/models/enums.dart';
 import '../../../data/models/job.dart';
 import '../../../data/repositories/jobs_repository.dart';
+import 'widgets/job_match_card.dart';
 
 /// Provider for a single public job.
 final publicJobProvider = FutureProvider.family<Job?, String>((ref, id) {
@@ -103,6 +106,19 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
       appBar: AppBar(
         title: const Text('Job Details'),
         actions: [
+          IconButton(
+            key: const Key('report_job_appbar_btn'),
+            icon: const Icon(Icons.flag_outlined),
+            tooltip: 'Report Incorrect Information',
+            onPressed: () {
+              final job = jobAsync.valueOrNull;
+              if (job != null) {
+                context.push('/reports?jobId=${job.id}&jobTitle=${Uri.encodeComponent(job.title)}');
+              } else {
+                context.push('/reports');
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.share_outlined),
             tooltip: 'Share',
@@ -233,7 +249,11 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                 ),
                 const SizedBox(height: AppSpacing.md),
 
-                // 2. AI Summary Card (Prominently Labelled)
+                // 2. Candidate Match Card (S22 Spec)
+                JobMatchCard(jobId: widget.jobId),
+                const SizedBox(height: AppSpacing.md),
+
+                // 3. AI Summary Card (Prominently Labelled)
                 if (job.aiSummary != null && job.aiSummary!.isNotEmpty) ...[
                   Card(
                     elevation: 0,
@@ -350,6 +370,21 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: AppSpacing.md),
+
+                // Report Incorrect Information Button
+                Center(
+                  child: TextButton.icon(
+                    key: const Key('report_incorrect_info_btn'),
+                    icon: const Icon(Icons.flag_outlined, size: 16),
+                    label: const Text('Report Incorrect Information'),
+                    onPressed: () {
+                      context.push(
+                        '/reports?jobId=${job.id}&jobTitle=${Uri.encodeComponent(job.title)}',
+                      );
+                    },
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xxl),
               ],
             ),
@@ -365,35 +400,51 @@ class _JobDetailScreenState extends ConsumerState<JobDetailScreen> {
               top: BorderSide(color: theme.colorScheme.outlineVariant),
             ),
           ),
-          child: ElevatedButton.icon(
-            key: const Key('apply_official_btn'),
-            icon: _isRedirecting
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+          child: (jobAsync.valueOrNull?.status == JobStatus.active)
+              ? ElevatedButton.icon(
+                  key: const Key('apply_official_btn'),
+                  icon: _isRedirecting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.open_in_new),
+                  label: Text(
+                    _isRedirecting
+                        ? 'Verifying Application Link...'
+                        : 'Apply on Official Website',
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                  ),
+                  onPressed: _isRedirecting
+                      ? null
+                      : () {
+                          final job = jobAsync.valueOrNull;
+                          if (job != null) _handleApply(job);
+                        },
+                )
+              : Container(
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  child: Text(
+                    'Position Closed',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
-                  )
-                : const Icon(Icons.open_in_new),
-            label: Text(
-              _isRedirecting
-                  ? 'Verifying Application Link...'
-                  : 'Apply on Official Website',
-            ),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-              backgroundColor: theme.colorScheme.primary,
-              foregroundColor: theme.colorScheme.onPrimary,
-            ),
-            onPressed: _isRedirecting
-                ? null
-                : () {
-                    final job = jobAsync.valueOrNull;
-                    if (job != null) _handleApply(job);
-                  },
-          ),
+                  ),
+                ),
         ),
       ),
     );

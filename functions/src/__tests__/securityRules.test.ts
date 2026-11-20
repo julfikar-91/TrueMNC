@@ -401,4 +401,68 @@ describe("Firebase Security Rules Suite (Firestore & Storage)", () => {
       await assertFails(reportRef.getDownloadURL());
     });
   });
+
+  // ── 7. Reports & Job Reporters Firestore Rules ───────────────────────────
+  describe("7. Reports and Job Reporters Rules", () => {
+    it("reports/{id}: reporter can read their own report; other users cannot; client write is denied", async () => {
+      // Seed a report created by server
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await context.firestore().collection("reports").doc("rep_1").set({
+          reporterUid: "alice",
+          category: "SUSPICIOUS_JOB",
+          text: "Scam details",
+          status: "OPEN",
+        });
+      });
+
+      const aliceDb = testEnv.authenticatedContext("alice").firestore();
+      const bobDb = testEnv.authenticatedContext("bob").firestore();
+
+      // Alice (owner) read succeeds
+      await assertSucceeds(aliceDb.collection("reports").doc("rep_1").get());
+
+      // Bob (non-owner) read fails
+      await assertFails(bobDb.collection("reports").doc("rep_1").get());
+
+      // Client direct write fails (must use callable)
+      await assertFails(
+        aliceDb.collection("reports").doc("rep_2").set({
+          reporterUid: "alice",
+          category: "OTHER",
+          text: "Hack",
+        })
+      );
+    });
+
+    it("jobs/{id}/reporters/{uid}: admin read only; regular users and client write denied", async () => {
+      // Seed a job reporter entry created by server trigger
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await context.firestore().collection("jobs").doc("job_1").collection("reporters").doc("alice").set({
+          category: "BROKEN_LINK",
+        });
+      });
+
+      const adminDb = testEnv
+        .authenticatedContext("admin_user", { role: "ADMIN" })
+        .firestore();
+      const userDb = testEnv.authenticatedContext("alice").firestore();
+
+      // Admin read succeeds
+      await assertSucceeds(
+        adminDb.collection("jobs").doc("job_1").collection("reporters").doc("alice").get()
+      );
+
+      // Regular user read fails (privacy preserved)
+      await assertFails(
+        userDb.collection("jobs").doc("job_1").collection("reporters").doc("alice").get()
+      );
+
+      // Client write fails
+      await assertFails(
+        userDb.collection("jobs").doc("job_1").collection("reporters").doc("alice").set({
+          category: "OTHER",
+        })
+      );
+    });
+  });
 });

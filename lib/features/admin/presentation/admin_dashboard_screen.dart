@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/demo/demo_nav_sheet.dart';
+import '../../../core/demo/demo_provider.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../data/models/enums.dart';
@@ -27,6 +29,11 @@ class AdminDashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bolt, color: Colors.amber),
+            tooltip: 'Demo Screen Explorer',
+            onPressed: () => showDemoNavSheet(context),
+          ),
           Container(
             margin: const EdgeInsets.only(right: AppSpacing.md),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -223,6 +230,18 @@ class AdminDashboardScreen extends ConsumerWidget {
             icon: Icons.monitor_heart_outlined,
             iconColor: Colors.blue,
             onTap: () => context.push('/admin/collection-monitor'),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+
+          // 6. User Reports (A12)
+          _AdminNavigationCard(
+            key: const Key('admin_user_reports_tile'),
+            title: 'User Reports',
+            subtitle:
+                'Review community-submitted reports on jobs and application issues.',
+            icon: Icons.report_problem_outlined,
+            iconColor: Colors.red.shade700,
+            onTap: () => context.push('/admin/reports'),
           ),
 
           // ── SUPER_ADMIN ONLY SECTION ────────────────────────────────────────

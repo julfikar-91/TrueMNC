@@ -4,11 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/demo/demo_nav_sheet.dart';
+import '../../../core/demo/demo_provider.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_logo.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../data/models/auth_result.dart';
 import '../../../data/repositories/auth_repository.dart';
@@ -179,12 +183,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: AppSpacing.sm),
-                Icon(
-                  Icons.business_center_rounded,
-                  size: 64,
-                  color: colorScheme.primary,
+                const Center(
+                  child: AppLogo(
+                    size: 72,
+                    borderRadius: 18,
+                    elevation: 2,
+                    semanticLabel: 'TrueMNC logo',
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.md),
                 Text(
                   'TrueMNC',
                   style: theme.textTheme.headlineMedium?.copyWith(
@@ -297,6 +304,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   isLoading: _isGoogleLoading,
                   icon: const Icon(Icons.g_mobiledata, size: 28),
                   onPressed: isCoolingDown ? null : _submitGoogleSignIn,
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // Quick Offline Demo & Screen Explorer Button
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                  ),
+                  icon: const Icon(Icons.bolt, color: Colors.amber),
+                  label: const Text('⚡ Quick Offline Demo Access'),
+                  onPressed: () => showDemoNavSheet(context),
                 ),
                 const SizedBox(height: AppSpacing.lg),
 

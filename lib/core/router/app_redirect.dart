@@ -13,6 +13,7 @@ class AppRedirectState extends Equatable {
     this.isEmailPasswordUser = false,
     this.role = UserRole.user,
     this.userDoc,
+    this.isDemoMode = false,
   });
 
   final bool isInitialized;
@@ -22,6 +23,7 @@ class AppRedirectState extends Equatable {
   final bool isEmailPasswordUser;
   final UserRole role;
   final UserDoc? userDoc;
+  final bool isDemoMode;
 
   bool get isAdmin => role == UserRole.admin || role == UserRole.superAdmin;
 
@@ -36,6 +38,7 @@ class AppRedirectState extends Equatable {
         isEmailPasswordUser,
         role,
         userDoc,
+        isDemoMode,
       ];
 }
 
@@ -54,6 +57,22 @@ String? appRedirect({
   required AppRedirectState state,
   required String currentPath,
 }) {
+  // ── DEMO MODE BYPASS: Allows testing every screen without network/Firebase ──
+  if (state.isDemoMode) {
+    final isAdminRoute =
+        currentPath == '/admin' || currentPath.startsWith('/admin/');
+    if (isAdminRoute && !state.isAdmin) {
+      return '/home';
+    }
+    final isSuperAdminRoute = currentPath == '/admin/administrators' ||
+        currentPath.startsWith('/admin/administrators/') ||
+        currentPath == '/admin/config' ||
+        currentPath.startsWith('/admin/config/');
+    if (isSuperAdminRoute && !state.isSuperAdmin) {
+      return '/admin';
+    }
+    return null;
+  }
   // ── ROW 1: Init fail / no network on first launch ─────────────────────────
   if (state.initError) {
     return currentPath == '/init-retry' ? null : '/init-retry';

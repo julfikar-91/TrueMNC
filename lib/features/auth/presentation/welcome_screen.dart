@@ -2,9 +2,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/demo/demo_nav_sheet.dart';
+import '../../../core/demo/demo_provider.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_logo.dart';
+import '../../../data/models/enums.dart';
 
 class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
@@ -27,20 +33,12 @@ class WelcomeScreen extends ConsumerWidget {
               const Spacer(flex: 2),
 
               // Hero Brand Emblem
-              Center(
-                child: Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer.withOpacity(0.7),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.verified_outlined,
-                    size: 56,
-                    color: colorScheme.primary,
-                    semanticLabel: 'Verified corporate badge',
-                  ),
+              const Center(
+                child: AppLogo(
+                  size: 104,
+                  borderRadius: 24,
+                  elevation: 4,
+                  semanticLabel: 'TrueMNC Brand Logo',
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -82,10 +80,32 @@ class WelcomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.md),
 
+              // Quick Offline Demo & Screen Explorer Button
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  side: BorderSide(color: colorScheme.primary),
+                ),
+                icon: const Icon(Icons.bolt, color: Colors.amber),
+                label: const Text(
+                  '⚡ Explore Offline Demo (All Screens)',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onPressed: () => showDemoNavSheet(context),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+
               // Guest Browse Link
               Center(
                 child: TextButton.icon(
-                  onPressed: () => context.go(AppRoutes.home),
+                  onPressed: () {
+                    ref.read(isDemoModeProvider.notifier).state = true;
+                    ref.read(demoRoleProvider.notifier).state = UserRole.user;
+                    context.go(AppRoutes.home);
+                  },
                   icon: const Icon(Icons.public_rounded, size: 18),
                   label: const Text('Browse as guest'),
                 ),

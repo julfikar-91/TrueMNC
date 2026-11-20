@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../demo/demo_toolbar_pill.dart';
+
 /// Bottom-navigation shell wrapping the five main tabs.
 class ScaffoldWithNav extends StatelessWidget {
   const ScaffoldWithNav({super.key, required this.navigationShell});
@@ -11,7 +13,12 @@ class ScaffoldWithNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigationShell,
+      body: Stack(
+        children: [
+          navigationShell,
+          const DemoToolbarPill(),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) =>
@@ -24,10 +31,10 @@ class ScaffoldWithNav extends StatelessWidget {
             tooltip: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.search_outlined),
-            selectedIcon: Icon(Icons.search),
-            label: 'Search',
-            tooltip: 'Search Jobs',
+            icon: Icon(Icons.explore_outlined),
+            selectedIcon: Icon(Icons.explore),
+            label: 'Explore',
+            tooltip: 'Explore Jobs',
           ),
           NavigationDestination(
             icon: Icon(Icons.bookmark_outline),
@@ -38,7 +45,7 @@ class ScaffoldWithNav extends StatelessWidget {
           NavigationDestination(
             icon: Icon(Icons.notifications_outlined),
             selectedIcon: Icon(Icons.notifications),
-            label: 'Alerts',
+            label: 'Notifications',
             tooltip: 'Notifications',
           ),
           NavigationDestination(

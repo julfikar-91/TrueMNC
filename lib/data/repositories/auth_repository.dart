@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../../core/demo/demo_provider.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/error_handler.dart';
 import '../../core/utils/constants.dart';
@@ -30,6 +31,11 @@ final authStateProvider = StreamProvider<User?>((ref) {
 /// Streams the user's role from Firebase ID token custom claims (default USER).
 /// Client can NEVER set or write role.
 final claimsProvider = StreamProvider<UserRole>((ref) async* {
+  final isDemo = ref.watch(isDemoModeProvider);
+  if (isDemo) {
+    yield ref.watch(demoRoleProvider);
+    return;
+  }
   final authRepo = ref.watch(authRepositoryProvider);
   await for (final user in authRepo.idTokenChanges) {
     if (user == null) {
@@ -48,6 +54,10 @@ final claimsProvider = StreamProvider<UserRole>((ref) async* {
 
 /// Streams the current user's `/users/{uid}` document from Firestore.
 final userDocProvider = StreamProvider<UserDoc?>((ref) {
+  final isDemo = ref.watch(isDemoModeProvider);
+  if (isDemo) {
+    return Stream.value(ref.watch(demoUserDocProvider));
+  }
   final authState = ref.watch(authStateProvider);
   return authState.when(
     data: (user) {
@@ -68,6 +78,9 @@ final appBootstrapProvider = AsyncNotifierProvider<AppBootstrapNotifier, bool>(
 class AppBootstrapNotifier extends AsyncNotifier<bool> {
   @override
   Future<bool> build() async {
+    final isDemo = ref.watch(isDemoModeProvider);
+    if (isDemo) return true;
+
     // Basic startup check: ensures Firebase auth/firestore are responsive
     try {
       final auth = ref.read(firebaseAuthProvider);

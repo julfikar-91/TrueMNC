@@ -98,14 +98,26 @@ class CompanyRepository {
     }
   }
 
+  /// Streams company by ID once (no persistent snapshot listener).
   Stream<Company?> watchById(String id) {
+    return Stream.fromFuture(getById(id));
+  }
+
+  /// Fetches verified companies once.
+  Future<List<Company>> getVerifiedCompanies({int limit = 10}) async {
     try {
-      return _col.doc(id).snapshots().map((doc) {
-        if (!doc.exists) return null;
-        return Company.fromFirestore(doc);
-      });
+      final snap = await _col
+          .where('isVerified', isEqualTo: true)
+          .limit(limit)
+          .get();
+      return snap.docs.map(Company.fromFirestore).toList();
     } catch (e, st) {
       throw handleException(e, st);
     }
+  }
+
+  /// Streams verified companies once (no persistent snapshot listener).
+  Stream<List<Company>> watchVerifiedCompanies({int limit = 10}) {
+    return Stream.fromFuture(getVerifiedCompanies(limit: limit));
   }
 }

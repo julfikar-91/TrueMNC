@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/repositories/auth_repository.dart';
+import '../demo/demo_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/init_retry_screen.dart';
 import '../widgets/scaffold_with_nav.dart';
@@ -17,6 +18,7 @@ import '../../features/admin/config/presentation/system_config_screen.dart';
 import '../../features/admin/jobs/presentation/admin_job_detail_screen.dart';
 import '../../features/admin/jobs/presentation/all_jobs_screen.dart';
 import '../../features/admin/presentation/admin_dashboard_screen.dart';
+import '../../features/admin/reports/presentation/admin_reports_screen.dart';
 import '../../features/admin/review/presentation/review_queue_screen.dart';
 import '../../features/admin/sources/presentation/company_sources_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
@@ -32,6 +34,8 @@ import '../../features/onboarding/presentation/splash_screen.dart';
 import '../../features/profile/presentation/profile_manual_screen.dart';
 import '../../features/profile/presentation/profile_preview_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/recommendations/presentation/recommendations_screen.dart';
+import '../../features/reports/presentation/reports_screen.dart';
 import '../../features/resume/presentation/resume_onboarding_screen.dart';
 import '../../features/resume/presentation/resume_processing_screen.dart';
 import '../../features/resume/presentation/resume_upload_screen.dart';
@@ -57,7 +61,9 @@ abstract final class AppRoutes {
   static const profileManual = '/profile-manual';
   static const preferences = '/preferences';
   static const home = '/home';
+  static const recommendations = '/recommendations';
   static const search = '/search';
+  static const reports = '/reports';
   static const saved = '/saved';
   static const notifications = '/notifications';
   static const profile = '/profile';
@@ -72,6 +78,7 @@ abstract final class AppRoutes {
   static const adminJobs = '/admin/jobs';
   static const adminJobDetail = '/admin/jobs/:id';
   static const adminReviewQueue = '/admin/review-queue';
+  static const adminReports = '/admin/reports';
   static const adminCollectionMonitor = '/admin/collection-monitor';
   static const adminAdministrators = '/admin/administrators';
   static const adminAuditLogs = '/admin/audit-logs';
@@ -81,6 +88,9 @@ abstract final class AppRoutes {
 /// Listenable that triggers GoRouter redirects whenever auth signals mutate.
 class RouterNotifier extends ChangeNotifier {
   RouterNotifier(this._ref) {
+    _ref.listen(isDemoModeProvider, (_, __) => notifyListeners());
+    _ref.listen(demoRoleProvider, (_, __) => notifyListeners());
+    _ref.listen(demoUserDocProvider, (_, __) => notifyListeners());
     _ref.listen(appBootstrapProvider, (_, __) => notifyListeners());
     _ref.listen(authStateProvider, (_, __) => notifyListeners());
     _ref.listen(claimsProvider, (_, __) => notifyListeners());
@@ -90,6 +100,22 @@ class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
 
   AppRedirectState get state {
+    final isDemo = _ref.read(isDemoModeProvider);
+    if (isDemo) {
+      final demoRole = _ref.read(demoRoleProvider);
+      final demoUserDoc = _ref.read(demoUserDocProvider);
+      return AppRedirectState(
+        isInitialized: true,
+        initError: false,
+        isAuthenticated: true,
+        isEmailVerified: true,
+        isEmailPasswordUser: false,
+        role: demoRole,
+        userDoc: demoUserDoc,
+        isDemoMode: true,
+      );
+    }
+
     final bootstrap = _ref.read(appBootstrapProvider);
     final isInitialized = bootstrap.hasValue && bootstrap.value == true;
     final initError =
@@ -192,6 +218,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.preferences,
         builder: (context, state) => const PreferencesScreen(),
       ),
+      GoRoute(
+        path: AppRoutes.recommendations,
+        builder: (context, state) => const RecommendationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.reports,
+        builder: (context, state) => ReportsScreen(
+          initialJobId: state.uri.queryParameters['jobId'],
+          initialJobTitle: state.uri.queryParameters['jobTitle'],
+        ),
+      ),
 
       // ── Main Tabbed Shell ──────────────────────────────────────────────────
       StatefulShellRoute.indexedStack(
@@ -291,6 +328,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.adminReviewQueue,
         builder: (context, state) => const ReviewQueueScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminReports,
+        builder: (context, state) => const AdminReportsScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminCollectionMonitor,

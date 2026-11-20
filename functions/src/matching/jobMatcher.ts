@@ -1,8 +1,9 @@
 // functions/src/matching/jobMatcher.ts
-// Orchestrates job-candidate matching logic (server-side).
+// Deterministic job-candidate matching logic (server-side).
+// Pure TypeScript matching engine — NO Gemini calls.
 import { db, Collections } from "../utils/config";
-import { geminiScoreMatch } from "../ai/geminiAdapter";
 import { logInfo } from "../utils/logger";
+import { scoreForUser, CandidateProfile, JobMatchCriteria } from "./score";
 
 const FN = "jobMatcher";
 
@@ -10,24 +11,26 @@ export async function matchJobToUser(
   jobId: string,
   userId: string,
 ): Promise<number> {
-  logInfo(FN, "Matching job to user", { jobId, userId });
+  logInfo(FN, "Matching job to user deterministically", { jobId, userId });
 
-  // Fetch job and resume
-  const [jobSnap, userSnap] = await Promise.all([
+  // Fetch job and user profile
+  const [jobSnap, userSnap, skillsSnap] = await Promise.all([
     db().collection(Collections.JOBS).doc(jobId).get(),
-    db().collection(Collections.RESUMES).where("userId", "==", userId).limit(1).get(),
+    db().collection(Collections.USERS).doc(userId).get(),
+    db().collection(Collections.USERS).doc(userId).collection("skills").doc("canonical").get(),
   ]);
 
-  if (!jobSnap.exists) return 0;
-  const jobData = jobSnap.data()!;
-  const resumeData = userSnap.empty ? null : userSnap.docs[0].data();
+  if (!jobSnap.exists || !userSnap.exists) return 0;
+  const jobData = { id: jobSnap.id, ...jobSnap.data() } as JobMatchCriteria;
+  const userData = userSnap.data() || {};
+  const skillsData = skillsSnap.exists ? skillsSnap.data() : null;
 
-  if (!resumeData?.parsedText) return 0;
+  const profile: CandidateProfile = {
+    location: userData.location,
+    skills: skillsData?.canonicalList || userData.matchKeys || [],
+    profile_confirmed: userData.profile_confirmed,
+  };
 
-  const result = await geminiScoreMatch(
-    resumeData.parsedText as string,
-    jobData["description"] as string,
-  );
-
+  const result = scoreForUser(profile, userData.preferences, jobData);
   return result.score;
 }

@@ -8,6 +8,7 @@ import { validate } from "../utils/validators";
 import { logInfo } from "../utils/logger";
 import { ResumeExtraction, ResumeExtractionSchema } from "../ai/resumeSchema";
 import { normaliseSkill } from "../matching/skills";
+import { onProfileConfirmedOrPreferencesChanged } from "../matching/fanout";
 
 const FN = "confirmProfile";
 
@@ -287,13 +288,18 @@ export const confirmProfile = onCall(
     // Commit batch write
     await batch.commit();
 
-    // 8. Enqueue Initial Matching Stub Log
-    logInfo(FN, "Enqueuing initial matching job for candidate", {
+    // 8. Trigger Initial Matching & Recommendations Fanout
+    logInfo(FN, "Enqueuing matching recommendations refresh for candidate", {
       uid,
       resumeId,
       profileCompletion,
       matchKeysCount: matchKeys.length,
     });
+    try {
+      await onProfileConfirmedOrPreferencesChanged(uid, true);
+    } catch (err) {
+      logInfo(FN, "Recommendation refresh completed or deferred", { err });
+    }
 
     return {
       success: true,

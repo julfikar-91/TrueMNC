@@ -8,3 +8,4 @@ functions/node_modules/
 coverage/
 *.log
 package-lock.json
+docs/spec/*.pdf
